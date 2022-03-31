@@ -33,6 +33,7 @@ def manage_client(client_ip):
             broadcast_message(f'{client_name} left the chatroom!'.encode())
             break
 
+
 def receive():
     while True:
         client, address = server.accept()
@@ -45,6 +46,12 @@ def receive():
         broadcast_message(f'{name} joined the chatroom!'.encode())
         client.send(f'Connected to the chatroom!'.encode())
 
+        thread = threading.Thread(target=manage_client)
+        thread.start()
 
 
-print('Server is listening......')
+if __name__ == '__main__':
+
+    print('Server is listening......')
+
+    receive()

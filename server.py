@@ -13,6 +13,9 @@ server.listen()
 clients = []
 clients_name = []
 
+users = []
+passwords = []
+
 
 def broadcast_message(message):
     for client in clients:
@@ -50,8 +53,26 @@ def receive():
         thread.start()
 
 
-if __name__ == '__main__':
+def get_user_info(path):
+    try:
+        with open(path) as file:
+            line = file.readline()
+            while line:
+                line = line.split(',')
+                users.append(line[0].strip())
+                passwords.append(line[1].strip())
+                line = file.readline()
+    except:
+        print('File not found!')
 
+
+if __name__ == '__main__':
+    file_path = 'user_information.txt'
     print('Server is listening......')
+    get_user_info(file_path)
+    print('Users List\n')
+    print(users, '\n')
+    print('Passwords List\n')
+    print(passwords)
 
     receive()

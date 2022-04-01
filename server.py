@@ -1,7 +1,7 @@
 import threading
 from socket import *
 
-host = '127.0.0.1'
+host = 'localhost'
 
 port = 45673
 
@@ -10,25 +10,25 @@ server.bind((host, port))
 
 server.listen()
 
-clients_IP = []
+clients = []
 clients_name = []
 
 
 def broadcast_message(message):
-    for IPs in clients_IP:
-        IPs.send(message)
+    for client in clients:
+        client.send(message)
 
 
-def manage_client(client_ip):
+def manage_client(client):
     while True:
         try:
-            message = client_ip.recv(1024)
+            message = client.recv(1024)
             broadcast_message(message)
         except:
-            index = clients_IP.index(client_ip)
-            clients_IP.remove(client_ip)
-            client_ip.close()
-            client_name = clients_name(index)
+            index = clients.index(client)
+            clients.remove(client)
+            client.close()
+            client_name = clients_name[index]
             clients_name.remove(client_name)
             broadcast_message(f'{client_name} left the chatroom!'.encode())
             break
@@ -41,12 +41,12 @@ def receive():
         client.send('NAME'.encode())
         name = client.recv(1024).decode()
         clients_name.append(name)
-        clients_IP.append(client)
-        print(f'This is {name}')
+        clients.append(client)
+        print(f'The nickname is {name}')
         broadcast_message(f'{name} joined the chatroom!'.encode())
-        client.send(f'Connected to the chatroom!'.encode())
+        client.send(f'Connected to the server!'.encode())
 
-        thread = threading.Thread(target=manage_client)
+        thread = threading.Thread(target=manage_client, args=(client,))
         thread.start()
 
 

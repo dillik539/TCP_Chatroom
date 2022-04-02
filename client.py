@@ -8,15 +8,18 @@ client_address = (host, port_Number)
 client = socket(AF_INET, SOCK_STREAM)
 client.connect(client_address)
 
-name = input('Enter your name: ')
+name = input('Enter username: ')
+password = input('Enter password: ')
 
 
 def receive_message():
     while True:
         try:
             message = client.recv(1024).decode()
-            if message == 'NAME':
+            if message == 'USERNAME':
                 client.send(name.encode())
+            elif message == 'PASSWORD':
+                client.send(password.encode())
             else:
                 print(message)
         except:

@@ -46,6 +46,12 @@ def authenticate(user, password):
             return False
 
 
+def add_user(name, password):
+    path = 'user_information.txt'
+    with open(path, 'a') as file:
+        file.write(name + ',' + password + '\n')
+
+
 def receive():
     while True:
         client, address = server.accept()
@@ -53,18 +59,18 @@ def receive():
         user = client.recv(1024).decode()
         client.send('PASSWORD'.encode())
         password = client.recv(1024).decode()
+        clients.append(client)
         if authenticate(user, password):
             print(f'Connected with {user}')
             broadcast_message(f'{user} joined the chatroom!'.encode())
             client.send(f'Connected to the server!'.encode())
         else:
-            users_list[user] = password
+            add_user(user, password)
+            # users_list[user] = password
             print(f'New user {user} joined!')
             client.send(f'Welcome to chatroom!'.encode())
             broadcast_message(f'New user {user} joined the chatroom!'.encode())
-        print(f'The new user is {user}')
-        print(f'The new password is {password}')
-        print('The new user list is', users_list)
+
         thread = threading.Thread(target=manage_client, args=(client,))
         thread.start()
 
@@ -87,11 +93,6 @@ if __name__ == '__main__':
     file_path = 'user_information.txt'
     print('Server is listening......')
     get_user_info(file_path)
-    print('Users List\n')
-    print(users, '\n')
-    print('Passwords List\n')
-    print(passwords, '\n')
-    print(users_list)
 
     receive()
 

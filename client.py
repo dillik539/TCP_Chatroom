@@ -1,17 +1,32 @@
+'''
+This is a client side TCP chat program which connects to the server,
+authenticates with username and password, and allows the user to run multiple
+tasks (receiving and sending message) from and to other users/server
+at the same time using threads.
+'''
+
 import threading
 
-from socket import *
+from socket import * #allows low-level networking (TCP/UDP) capabilities.
 
-host = 'localhost'
-port_Number = 45673
-client_address = (host, port_Number)
+host = 'localhost'   #server's IP
+port_Number = 45673    #server's port where it listens for message
+client_address = (host, port_Number)   #This is server, not to confuse with client.
+
+#create a TCP socket using IPV4
 client = socket(AF_INET, SOCK_STREAM)
+
+#connect socket (client's) to the server
 client.connect(client_address)
 
 name = input('Enter username: ')
 password = input('Enter password: ')
 
-
+'''
+This defines how client handles message received from the server. This
+constantly wait for the data from the server, receives bytes in chunk(1024),
+and decode to plain string.
+'''
 def receive_message():
     while True:
         try:
@@ -27,7 +42,10 @@ def receive_message():
             client.close()
             break
 
-
+'''
+This function continuously takes input from the user, encode it as byte
+and sends it to the server
+'''
 def write_message():
     while True:
         chat_message = f'{name}: {input()}'

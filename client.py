@@ -8,16 +8,24 @@ at the same time using threads.
 import threading
 
 from socket import * #allows low-level networking (TCP/UDP) capabilities.
+'''set up the client'''
+def connect_to_server():
+    server_ip = input("Enter server IP address (default: localhost): ") or "localhost"
+    server_port = int(input("Enter server port (default: 45673): ") or 45673)
+    server = (server_ip, server_port)
+    client_socket = socket(AF_INET,SOCK_STREAM) #TCP socket
+    client_socket.connect(server) #connects to server
+    return client_socket #returns socket for further use
 
-host = 'localhost'   #server's IP
-port_Number = 45673    #server's port where it listens for message
-client_address = (host, port_Number)   #This is server, not to confuse with client.
+# host = 'localhost'   #server's IP
+# port_Number = 45673    #server's port where it listens for message
+# client_address = (host, port_Number)   #This is server, not to confuse with client.
 
-#create a TCP socket using IPV4
-client = socket(AF_INET, SOCK_STREAM)
+# #create a TCP socket using IPV4
+# client = socket(AF_INET, SOCK_STREAM)
 
-#connect socket (client's) to the server
-client.connect(client_address)
+# #connect socket (client's) to the server
+# client.connect(client_address)
 
 name = input('Enter username: ')
 password = input('Enter password: ')

@@ -5,25 +5,34 @@ host = 'localhost'
 
 port = 45673
 
-server = socket(AF_INET, SOCK_STREAM)
+server = socket(AF_INET, SOCK_STREAM) #server socket (TCP-IP, IPV4)
 server.bind((host, port))
 
-server.listen()
+server.listen() #puts the server socket in listening mode
 
-users_list = {}
-clients = []
-clients_name = []
+users_list = {} #dictionary (username, password) loaded from locally stored file
+clients = [] #list of active client sockets
+clients_name = [] #list of usernames corresponding to client sockets
 
-users = []
-passwords = []
+users = [] #list to capture only users
+passwords = [] #list to capture only passwords
 
-
+'''
+This function sends the given message(in bytes) to every active clients
+'''
 def broadcast_message(message):
+    #TODO: Surround with try/except to prevent caller crash, if any socket is broken
     for client in clients:
         client.send(message)
 
-
+'''
+This function continuously loops to receive message from the client,
+broadcast the received message to all other clients, and in case any 
+socket becomes inactive, removes that socket and associated username
+from the lists.
+'''
 def manage_client(client):
+    #TODO:Address the race condition between clients/clients_name with synchronyzation
     while True:
         try:
             message = client.recv(1024)
@@ -37,7 +46,9 @@ def manage_client(client):
             broadcast_message(f'{client_name} left the chatroom!'.encode())
             break
 
-
+'''
+This function authenticates the user with the (username, password) combination
+'''
 def authenticate(user, password):
     for u, p in users_list.items():
         if user == u and password == p:
@@ -45,26 +56,32 @@ def authenticate(user, password):
         else:
             return False
 
-
+'''
+This function adds user (username, password) combination to the file
+'''
 def add_user(name, password):
     path = 'user_information.txt'
     with open(path, 'a') as file:
+        #TODO: Encrypt/hash the plain text password for more security
         file.write(name + ',' + password + '\n')
 
-
+'''
+This function addresses how the received message is handled.
+'''
 def receive():
     while True:
-        client, address = server.accept()
+        client, address = server.accept() #Blocks everything until a new TCP connection is accepted, and returns addresses and socket
         client.send('USERNAME'.encode())
         user = client.recv(1024).decode()
         client.send('PASSWORD'.encode())
         password = client.recv(1024).decode()
-        clients.append(client)
+        clients.append(client) #TODO: Authenticate first and then append
         if authenticate(user, password):
             print(f'Connected with {user}')
             broadcast_message(f'{user} joined the chatroom!'.encode())
             client.send(f'Connected to the server!'.encode())
         else:
+            #TODO: Address the auto registration feature here.
             add_user(user, password)
             # users_list[user] = password
             print(f'New user {user} joined!')
@@ -74,7 +91,9 @@ def receive():
         thread = threading.Thread(target=manage_client, args=(client,))
         thread.start()
 
-
+'''
+This function loads users from the file to the in-memory state list
+'''
 def get_user_info(path):
     try:
         with open(path) as file:

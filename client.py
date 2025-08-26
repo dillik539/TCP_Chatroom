@@ -33,20 +33,21 @@ password = input('Enter password: ')
 '''
 This defines how client handles message received from the server. This
 constantly wait for the data from the server, receives bytes in chunk(1024),
-and decode to plain string.
+and decode to plain string and display to the user.
 '''
-def receive_message():
+def receive_message(client):
+    '''
+    Continuously listen for messages from the server and display them.
+    '''
     while True:
         try:
             message = client.recv(1024).decode()
-            if message == 'USERNAME':
-                client.send(name.encode())
-            elif message == 'PASSWORD':
-                client.send(password.encode())
-            else:
-                print(message)
+            if not message:
+                print("Disconnected from server.")
+                break
+            print(message)
         except:
-            print('An error occurred!')
+            print('Connection error! Closing client.')
             client.close()
             break
 
@@ -54,9 +55,16 @@ def receive_message():
 This function continuously takes input from the user, encode it as byte
 and sends it to the server
 '''
-def write_message():
+def send_message(client, username):
+    '''
+    Continuously read user input and send it to the server.
+    '''
     while True:
-        chat_message = f'{name}: {input()}'
+        chat_message = f'{username}: {input()}'
+        if chat_message.lower() =="/quit":
+            client.send(f'{username} has left the chat.'.encode())
+            client.close()
+            break
         client.send(chat_message.encode())
 
 

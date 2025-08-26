@@ -17,19 +17,6 @@ def connect_to_server():
     client_socket.connect(server) #connects to server
     return client_socket #returns socket for further use
 
-# host = 'localhost'   #server's IP
-# port_Number = 45673    #server's port where it listens for message
-# client_address = (host, port_Number)   #This is server, not to confuse with client.
-
-# #create a TCP socket using IPV4
-# client = socket(AF_INET, SOCK_STREAM)
-
-# #connect socket (client's) to the server
-# client.connect(client_address)
-
-name = input('Enter username: ')
-password = input('Enter password: ')
-
 '''
 This defines how client handles message received from the server. This
 constantly wait for the data from the server, receives bytes in chunk(1024),
@@ -67,10 +54,24 @@ def send_message(client, username):
             break
         client.send(chat_message.encode())
 
+def main():
+    client = connect_to_server()
+
+    #handle login procedure
+    server_msg = client.recv(1024).decode()
+    if server_msg == "USERNAME":
+        username = input('Enter username: ')
+        client.send(username.encode())
+    
+    server_msg = client.recv(1024).decode()
+    if server_msg == "PASSWORD":
+        password = input('Enter password: ')
+        client.send(password.encode())
+
+    #Start threads for async send/receive
+    threading.Thread(target=receive_message, args = (client,), daemon=True).start()
+    threading.Thread(target=send_message, args=(client, username), daemon=True).start()
 
 if __name__ == '__main__':
 
-    receive_message_thread = threading.Thread(target=receive_message)
-    write_message_thread = threading.Thread(target=write_message)
-    receive_message_thread.start()
-    write_message_thread.start()
+    main()

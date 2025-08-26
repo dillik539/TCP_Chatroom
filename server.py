@@ -69,6 +69,7 @@ def add_user(name, password):
     with open(path, 'a') as file:
         #TODO: Encrypt/hash the plain text password for more security
         file.write(name + ',' + password + '\n')
+    users_list[name] = password     #updates in-memory dictionary of userlist
 
 '''
 This function addresses how the received message is handled.

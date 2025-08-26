@@ -59,11 +59,7 @@ def manage_client(client):
 This function authenticates the user with the (username, password) combination
 '''
 def authenticate(user, password):
-    for u, p in users_list.items():
-        if user == u and password == p:
-            return True
-        else:
-            return False
+    return users_list.get(user) == password
 
 '''
 This function adds user (username, password) combination to the file

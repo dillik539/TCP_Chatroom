@@ -103,15 +103,19 @@ This function loads users from the file to the in-memory state list
 def get_user_info(path):
     try:
         with open(path) as file:
-            line = file.readline()
-            while line:
-                line = line.split(',')
-                users_list[line[0].strip()] = line[1].strip()
-                # users.append(line[0].strip())
-                # passwords.append(line[1].strip())
-                line = file.readline()
-    except:
-        print('File not found!')
+            for line in file:
+                if "," in line:
+                    user, pwd = line.strip().split(",", 1)
+                    users_list[user] = pwd
+            # line = file.readline()
+            # while line:
+            #     line = line.split(',')
+            #     users_list[line[0].strip()] = line[1].strip()
+            #     # users.append(line[0].strip())
+            #     # passwords.append(line[1].strip())
+            #     line = file.readline()
+    except FileNotFoundError:
+        print('No user file found! Starting with empty user list.')
 
 
 if __name__ == '__main__':

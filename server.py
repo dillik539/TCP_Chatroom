@@ -1,29 +1,38 @@
 import threading
 from socket import *
 
-host = 'localhost'
+HOST = 'localhost'      #server listens only on local machine
+PORT = 45673
 
-port = 45673
+server = socket(AF_INET, SOCK_STREAM)       #server socket (TCP-IP, IPV4)
+server.bind((HOST, PORT))
+server.listen()     #puts the server socket in listening mode
 
-server = socket(AF_INET, SOCK_STREAM) #server socket (TCP-IP, IPV4)
-server.bind((host, port))
+print(f'Server started on {HOST}:{PORT},waiting for connections.....')
 
-server.listen() #puts the server socket in listening mode
-
-users_list = {} #dictionary (username, password) loaded from locally stored file
-clients = [] #list of active client sockets
-clients_name = [] #list of usernames corresponding to client sockets
-
-users = [] #list to capture only users
-passwords = [] #list to capture only passwords
+users_list = {}         #dictionary (username, password) loaded from locally stored file
+clients = []        #list of active client sockets
+clients_name = []       #list of usernames corresponding to client sockets
+lock = threading.Lock()     #This ensures safe access from multiple threads.
+users = []      #list to capture only users
+passwords = []      #list to capture only passwords
 
 '''
 This function sends the given message(in bytes) to every active clients
 '''
-def broadcast_message(message):
-    #TODO: Surround with try/except to prevent caller crash, if any socket is broken
-    for client in clients:
-        client.send(message)
+def broadcast_message(message, sender = None):
+    with lock:      #prevents race conditions while iterating
+        for client in clients:
+            try:
+                if sender and client == sender:
+                    continue        #skip the broadcast to the sender
+                client.send(message)
+            except:     #if sending fails, remove the broken socket and close it.
+                idx = clients.index(client)
+                client.close()
+                clients.remove(client)
+                name = clients_name.pop(idx)
+                print(f'Removed dead client {name}')
 
 '''
 This function continuously loops to receive message from the client,

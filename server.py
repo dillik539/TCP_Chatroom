@@ -40,19 +40,22 @@ broadcast the received message to all other clients, and in case any
 socket becomes inactive, removes that socket and associated username
 from the lists.
 '''
-def manage_client(client):
-    #TODO:Address the race condition between clients/clients_name with synchronyzation
+def manage_client(client, username):
     while True:
         try:
             message = client.recv(1024)
-            broadcast_message(message)
+            if not message:
+                raise ConnectionError
+            broadcast_message(f'{username}:{message.decode()}'.encode())
         except:
-            index = clients.index(client)
-            clients.remove(client)
+            with lock:      #makes thread safe
+                if client in clients:
+                    idx = clients.index(client)
+                    clients.remove(client)
+                    clients_name.pop(idx)
+            broadcast_message(f'{username} left the chatroom!'.encode())
+            print(f'{username} disconnected.')
             client.close()
-            client_name = clients_name[index]
-            clients_name.remove(client_name)
-            broadcast_message(f'{client_name} left the chatroom!'.encode())
             break
 
 '''

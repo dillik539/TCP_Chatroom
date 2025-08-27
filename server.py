@@ -80,24 +80,27 @@ This function addresses how the received message is handled.
 def receive():
     while True:
         client, address = server.accept() #Blocks everything until a new TCP connection is accepted, and returns addresses and socket
+        print(f'Incoming connection from {address}')
+        
         client.send('USERNAME'.encode())
-        user = client.recv(1024).decode()
+        user = client.recv(1024).decode().strip()
         client.send('PASSWORD'.encode())
-        password = client.recv(1024).decode()
-        clients.append(client) #TODO: Authenticate first and then append
-        if authenticate(user, password):
-            print(f'Connected with {user}')
-            broadcast_message(f'{user} joined the chatroom!'.encode())
-            client.send(f'Connected to the server!'.encode())
-        else:
-            #TODO: Address the auto registration feature here.
-            add_user(user, password)
-            # users_list[user] = password
-            print(f'New user {user} joined!')
-            client.send(f'Welcome to chatroom!'.encode())
-            broadcast_message(f'New user {user} joined the chatroom!'.encode())
+        password = client.recv(1024).decode().strip()
+        with lock:
+            if authenticate(user, password):
+                print(f'{user} authenticated successfully!')
+                client.send(f'Connected to the server!'.encode())
+            else:
+                #TODO: Address the auto registration feature here.
+                add_user(user, password)
+                client.send('Welcome new user!'.encode())
+                print(f'Registered new user {user}.')
+            clients.append(client)
+            clients_name.append(user)
 
-        thread = threading.Thread(target=manage_client, args=(client,))
+        broadcast_message(f'{user} joined the chatroom!'.encode())
+    
+        thread = threading.Thread(target=manage_client, args=(client,user),daemon=True)
         thread.start()
 
 '''

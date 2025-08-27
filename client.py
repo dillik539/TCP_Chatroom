@@ -47,12 +47,16 @@ def send_message(client, username):
     Continuously read user input and send it to the server.
     '''
     while True:
-        chat_message = f'{username}: {input()}'
-        if chat_message.lower() =="/quit":
-            client.send(f'{username} has left the chat.'.encode())
-            client.close()
+        try:
+            chat_message = input()
+            if chat_message.strip().lower() =="/quit":
+                client.send(f'{username} has left the chat.'.encode())
+                client.close()
+                break
+            chat_message = f'{username}:{chat_message}'
+            client.send(chat_message.encode())
+        except:
             break
-        client.send(chat_message.encode())
 
 def main():
     client = connect_to_server()
@@ -69,8 +73,14 @@ def main():
         client.send(password.encode())
 
     #Start threads for async send/receive
-    threading.Thread(target=receive_message, args = (client,), daemon=True).start()
-    threading.Thread(target=send_message, args=(client, username), daemon=True).start()
+    recv_thread = threading.Thread(target=receive_message, args = (client,))
+    send_thread = threading.Thread(target=send_message, args=(client, username))
+    
+    recv_thread.start()
+    send_thread.start()
+
+    recv_thread.join()
+    send_thread.join()
 
 if __name__ == '__main__':
 

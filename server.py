@@ -102,7 +102,6 @@ def receive():
         with lock:
             if authenticate(user, password):
                 print(f'{user} authenticated successfully!')
-                client.send(f'Connected to the server!'.encode())
             else:
                 #TODO: Address the auto registration feature here.
                 add_user(user, password)

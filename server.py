@@ -91,10 +91,12 @@ def receive():
         client, address = server.accept() #Blocks everything until a new TCP connection is accepted, and returns addresses and socket
         print(f'Incoming connection from {address}')
         
+        #Ask client for login information
         client.send('USERNAME'.encode())
         user = client.recv(1024).decode().strip()
         client.send('PASSWORD'.encode())
         password = client.recv(1024).decode().strip()
+        
         with lock:
             if authenticate(user, password):
                 print(f'{user} authenticated successfully!')
@@ -107,8 +109,11 @@ def receive():
             clients.append(client)
             clients_name.append(user)
 
-        broadcast_message(f'{user} joined the chatroom!'.encode(),user)
+        #notifies only other clients about new user
+        broadcast_message(f'{user} joined the chatroom!'.encode(),sender = client, include_sender= False)
     
+        #sends a direct welcome message to just this client.
+        client.send(f'Welcome, {user}! You are now connected.'.encode())
         thread = threading.Thread(target=manage_client, args=(client,user),daemon=True)
         thread.start()
 

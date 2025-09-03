@@ -55,7 +55,7 @@ def manage_client(client, username):
             if not message:
                 raise ConnectionError
             #Broadcast to others and optionally back to sender too. change include_sender to false if you don't want to echo back to sender.
-            broadcast_message(f'{username}:{message.decode()}'.encode(),sender = client, include_sender=True)
+            broadcast_message(f'{message.decode()}'.encode(),sender = client, include_sender=True)
         except:
             with lock:      #makes thread safe
                 if client in clients:

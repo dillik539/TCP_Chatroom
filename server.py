@@ -62,7 +62,9 @@ def manage_client(client, username):
                     idx = clients.index(client)
                     clients.remove(client)
                     clients_name.pop(idx)
-            broadcast_message(f'{username} left the chatroom!'.encode())
+            #notifies only others that the user has left       
+            broadcast_message(f'{username} left the chatroom!'.encode(), sender = client, include_sender=False)
+            
             print(f'{username} disconnected.')
             client.close()
             break

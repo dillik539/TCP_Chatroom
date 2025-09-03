@@ -18,13 +18,21 @@ users = []      #list to capture only users
 passwords = []      #list to capture only passwords
 
 '''
-This function sends the given message(in bytes) to every active clients
+This function sends the given message(in bytes) to every active clients.
+It allows the developer whether to broadcast the message back to the sender
+or not to broadcast to the sender simply by switching include_sender
+parameter to True/False.
+
+:param message: message to send (in bytes)
+:param sender: the client socket that sends the message
+:param include_sender: sends the message back to sender, if this is set to True
 '''
-def broadcast_message(message, sender = None):
+def broadcast_message(message, sender = None, include_sender = False):
     with lock:      #prevents race conditions while iterating
         for client in clients:
             try:
-                if sender and client == sender:
+                #skip the sender if include_sender is set to False
+                if not include_sender and sender and client == sender:
                     continue        #skip the broadcast to the sender
                 client.send(message)
             except:     #if sending fails, remove the broken socket and close it.
@@ -32,7 +40,7 @@ def broadcast_message(message, sender = None):
                 client.close()
                 clients.remove(client)
                 name = clients_name.pop(idx)
-                print(f'Removed dead client {name}')
+                print(f'Removed disconnected client {name}')
 
 '''
 This function continuously loops to receive message from the client,
@@ -98,7 +106,7 @@ def receive():
             clients.append(client)
             clients_name.append(user)
 
-        broadcast_message(f'{user} joined the chatroom!'.encode())
+        broadcast_message(f'{user} joined the chatroom!'.encode(),user)
     
         thread = threading.Thread(target=manage_client, args=(client,user),daemon=True)
         thread.start()

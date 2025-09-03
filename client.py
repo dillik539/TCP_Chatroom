@@ -47,15 +47,23 @@ def send_message(client, username):
     Continuously read user input and send it to the server.
     '''
     while True:
-        try:
-            chat_message = input()
-            if chat_message.strip().lower() =="/quit":
+        chat_message = input()
+
+        if chat_message.strip().lower() =='/quit':
+            #notifies server before closing
+            try:
                 client.send(f'{username} has left the chat.'.encode())
-                client.close()
-                break
-            chat_message = f'{username}:{chat_message}'
+            except:
+                pass
+            client.close()
+            print('You have left the chatroom. Goodbye!')
+            break
+        chat_message = f'{username}:{chat_message}'
+        try:
             client.send(chat_message.encode())
         except:
+            print('Error sending message. Closing client.')
+            client.close()
             break
 
 def main():

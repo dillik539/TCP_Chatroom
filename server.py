@@ -86,13 +86,16 @@ def add_user(name, password):
     users_list[name] = password     #updates in-memory dictionary of userlist
 
 '''
-This function addresses how the received message is handled.
+This function manages authentication and launching client management
+for each new connection in its own thread so that each user
+can type in username and password simultenously instead of waiting for
+one client to be authenticated.
 '''
-def receive():
-    while True:
-        client, address = server.accept() #Blocks everything until a new TCP connection is accepted, and returns addresses and socket
+
+def manage_new_client(client, address):
+    try:
         print(f'Incoming connection from {address}')
-        
+
         #Ask client for login information
         client.send('USERNAME'.encode())
         user = client.recv(1024).decode().strip()
@@ -115,7 +118,25 @@ def receive():
     
         #sends a direct welcome message to just this client.
         client.send(f'Welcome, {user}! You are now connected.'.encode())
-        thread = threading.Thread(target=manage_client, args=(client,user),daemon=True)
+
+        #switch to chat management
+        manage_client(client, user)
+
+    except Exception as e:
+        print(f'Error occured while handling client {address}: {e}')
+        client.close()
+
+'''
+This function addresses how the received message is handled.
+Each new connection is handled seperately in its own thread.
+'''
+
+def receive():
+    while True:
+        client, address = server.accept()
+
+        #starts a new thread that handle this client's authentication and chat management.
+        thread = threading.Thread(target=manage_new_client, args=(client,address),daemon=True)
         thread.start()
 
 '''

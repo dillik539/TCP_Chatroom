@@ -54,8 +54,19 @@ def manage_client(client, username):
             message = client.recv(1024)
             if not message:
                 raise ConnectionError
-            #Broadcast to others and optionally back to sender too. change include_sender to false if you don't want to echo back to sender.
-            broadcast_message(f'{message.decode()}'.encode(),sender = client, include_sender=True)
+            decoded_msg = message.decode().strip()
+            #checks if the message is intended private
+            if decoded_msg.lower().startswith('/dm'):
+                split_msg = decoded_msg.split(' ', 2) #split by space, but only twice ([/dm, recipient, message here])
+                if len(split_msg) < 3:
+                    client.send('Usage: /dm <username> <message>'.encode())
+                else:
+                    _, recipient,msg = split_msg
+                    manage_private_message(username, recipient, msg, client)
+            else:
+                #treats as public message
+                manage_public_message(username, client, decoded_msg)
+
         except:
             with lock:      #makes thread safe
                 if client in clients:

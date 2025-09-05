@@ -152,7 +152,31 @@ def get_user_info(path):
     except FileNotFoundError:
         print('No user file found! Starting with empty user list.')
 
+'''
+This function handles all the public messages (going to every users)
+'''
 
+def manage_public_message(username, client, message):
+    broadcast_message(f'{username}:{message}'.encode(), sender = client, include_sender=True)
+
+'''
+This function handles private messages (going to specific user)
+
+'''
+def manage_private_message(sender, recipient, message, client):
+    #handles direct messages between two users.
+    with lock:
+        if recipient in clients_name:
+            idx = clients_name.index(recipient)
+            recipient_socket = clients[idx]
+            try:
+                recipient_socket.send(f'[DM from {sender}]: {message}'.encode())
+                #confirm to sender
+                client.send(f'DM to {recipient}: {message}'.encode())
+            except:
+                client.send(f'Could not send DM to {recipient}.'.encode())
+        else:
+            client.send(f'User {recipient} not found.'.encode())
 if __name__ == '__main__':
     file_path = 'user_information.txt'
     get_user_info(file_path)

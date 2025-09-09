@@ -58,9 +58,13 @@ def send_message(client, username):
             client.close()
             print('You have left the chatroom. Goodbye!')
             break
-        chat_message = f'{username}:{chat_message}'
+        #checks if it is a direct message
         try:
-            client.send(chat_message.encode())
+            if chat_message.strip().lower().startswith('/dm'):
+                #sends the message as-is. Leave parsing in the hands of server
+                client.send(chat_message.encode())
+            else:
+                client.send(f'{username}:{chat_message}'.encode())
         except:
             print('Error sending message. Closing client.')
             client.close()

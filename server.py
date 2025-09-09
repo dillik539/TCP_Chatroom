@@ -65,7 +65,7 @@ def manage_client(client, username):
                     manage_private_message(username, recipient, msg, client)
             else:
                 #treats as public message
-                manage_public_message(username, client, decoded_msg)
+                manage_public_message(client, decoded_msg)
 
         except:
             with lock:      #makes thread safe
@@ -167,8 +167,8 @@ def get_user_info(path):
 This function handles all the public messages (going to every users)
 '''
 
-def manage_public_message(username, client, message):
-    broadcast_message(f'{username}:{message}'.encode(), sender = client, include_sender=True)
+def manage_public_message(client, message):
+    broadcast_message(f'{message}'.encode(), sender = client, include_sender=True)
 
 '''
 This function handles private messages (going to specific user)

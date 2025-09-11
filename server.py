@@ -1,5 +1,6 @@
 import threading
 from socket import *
+import bcrypt #for hashing password at rest (server's harddisk)
 
 HOST = 'localhost'      #server listens only on local machine
 PORT = 45673
@@ -87,14 +88,17 @@ def authenticate(user, password):
     return users_list.get(user) == password
 
 '''
-This function adds user (username, password) combination to the file
+This function adds user (username, password) combination to the file. The password
+is hashed using a secure algorithm (bcrypt) before it is saved in the file
 '''
 def add_user(name, password):
     path = 'user_information.txt'
+    #hashes the password with bcrypt before storing/saving to a file.
+    hash_pswd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     with open(path, 'a') as file:
         #TODO: Encrypt/hash the plain text password for more security
-        file.write(name + ',' + password + '\n')
-    users_list[name] = password     #updates in-memory dictionary of userlist
+        file.write(name + ',' + hash_pswd + '\n')
+    users_list[name] = hash_pswd     #updates in-memory dictionary of userlist
 
 '''
 This function manages authentication and launching client management

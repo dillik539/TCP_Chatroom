@@ -85,7 +85,10 @@ def manage_client(client, username):
 This function authenticates the user with the (username, password) combination
 '''
 def authenticate(user, password):
-    return users_list.get(user) == password
+    stored_hashed_pswd = users_list.get(user)
+    if not stored_hashed_pswd:
+        return False
+    return bcrypt.checkpw(password.encode(),stored_hashed_pswd.encode())
 
 '''
 This function adds user (username, password) combination to the file. The password

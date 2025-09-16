@@ -82,13 +82,38 @@ def manage_client(client, username):
             break
 
 '''
-This function authenticates the user with the (username, password) combination
+This function authenticates the user with the (username, password) combination.This function
+now accomodates the old authentication feature (verify even the plaintext password) and also
+works with hashed password feature.
 '''
 def authenticate(user, password):
     stored_hashed_pswd = users_list.get(user)
     if not stored_hashed_pswd:
         return False
-    return bcrypt.checkpw(password.encode(),stored_hashed_pswd.encode())
+    #checks if the password is stored as hashed value
+    if stored_hashed_pswd.startswith('$2b$') or stored_hashed_pswd.startswith('$2a$'):
+        return bcrypt.checkpw(password.encode(),stored_hashed_pswd.encode())
+    #checks if the password is stored as plain text
+    if password == stored_hashed_pswd:
+        print(f"Migrating {user}'s password to bcrypt.")
+        #rehashes plain-text password and update the file as well as in-memory dictionary
+        add_user_hashed(user, password)
+        return True
+    return False
+
+'''This function helps to re-hash the legacy plain-text password of the 
+existing users.
+'''
+
+def add_user_hashed(name, password):
+    #re-hash plain-text password and update the storage
+    hashed_pswd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    users_list[name] = hashed_pswd
+    #rewrite the file with updated hashed password
+    path = 'user_information.txt'
+    with open(path, 'w') as file:
+        for username, pwd in users_list.items():
+            file.write(username + ',' + pwd + '\n')
 
 '''
 This function adds user (username, password) combination to the file. The password

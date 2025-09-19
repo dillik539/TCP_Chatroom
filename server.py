@@ -105,12 +105,11 @@ def authenticate(user, password):
 existing users.
 '''
 
-def add_user_hashed(name, password):
+def add_user_hashed(name, password, path = 'user_information.txt'):
     #re-hash plain-text password and update the storage
     hashed_pswd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     users_list[name] = hashed_pswd
     #rewrite the file with updated hashed password
-    path = 'user_information.txt'
     with open(path, 'w') as file:
         for username, pwd in users_list.items():
             file.write(username + ',' + pwd + '\n')
@@ -119,8 +118,7 @@ def add_user_hashed(name, password):
 This function adds user (username, password) combination to the file. The password
 is hashed using a secure algorithm (bcrypt) before it is saved in the file
 '''
-def add_user(name, password):
-    path = 'user_information.txt'
+def add_user(name, password, path = 'user_information.txt'):
     #hashes the password with bcrypt before storing/saving to a file.
     hash_pswd = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     with open(path, 'a') as file:
